@@ -83,9 +83,9 @@ public class RadiusPacket {
         this.authenticator = authenticator;
     }
 
-    public List<Attribute> getAttributes() {return attributes;}
+    public List<Attribute> getAttributes() { return attributes; }
 
-    public void setAttributes(List<Attribute> attributes) {this.attributes = attributes;}
+    public void setAttributes(List<Attribute> attributes) { this.attributes = attributes; }
 
     @Override
     public String toString() {

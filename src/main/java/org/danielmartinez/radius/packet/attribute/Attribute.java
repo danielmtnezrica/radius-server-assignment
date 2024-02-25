@@ -26,7 +26,7 @@ public class Attribute {
      */
     private byte[] value;
 
-    // Constructor
+    // Constructors
     public Attribute(short type, int length, byte[] value) {
         this.type = type;
         this.length = length;
@@ -49,9 +49,7 @@ public class Attribute {
         this.length = length;
     }
 
-    public byte[] getValue() {
-        return value;
-    }
+    public byte[] getValue() {return value; }
     public void setValue(byte[] value) {
         this.value = value;
     }

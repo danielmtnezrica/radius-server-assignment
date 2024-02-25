@@ -1,4 +1,4 @@
-package org.danielmartinez.radius;
+package org.danielmartinez.radius.core;
 
 import org.danielmartinez.radius.packet.RadiusPacket;
 import org.danielmartinez.radius.packet.attribute.Attribute;
@@ -87,8 +87,8 @@ public class RadiusServer {
             int attributeLength = radiusData[radiusAttributeStartPosition + 1];
 
             // Extract attribute value
-            byte[] attributeValue = new byte[attributeLength];
-            System.arraycopy(radiusData, radiusAttributeStartPosition, attributeValue, 0, attributeLength);
+            byte[] attributeValue = new byte[attributeLength - 2];
+            System.arraycopy(radiusData, radiusAttributeStartPosition + 2, attributeValue, 0, attributeLength - 2);
 
             // Add attribute to the attributes list
             Attribute attribute = new Attribute(attributeType, attributeLength, attributeValue);
@@ -142,6 +142,7 @@ public class RadiusServer {
         // Check RADIUS attributes
         List<Attribute> radiusPacketAttributes = radiusPacket.getAttributes();
         HashMap<String, byte[]> credentialsMap = new HashMap<>();
+        UserManager userManager = new UserManager();
 
         for (Attribute attribute: radiusPacketAttributes){
             if(attribute.getType() == RadiusConstants.USER_NAME){
@@ -155,11 +156,33 @@ public class RadiusServer {
 
         if(credentialsMap.containsKey("USER_PASSWORD")){
             if(credentialsMap.containsKey("USER_NAME")){
-                // Get SharedSecret
                 // Get Request Authenticator
-                // Get User Password
+                credentialsMap.put("REQUEST_AUTHENTICATOR", radiusPacket.getAuthenticator());
+
+                // Get SharedSecret
+                if(userManager.clientExists(new String(credentialsMap.get("USER_NAME")))){
+                    credentialsMap.put("SHARED_SECRET", userManager.getSharedSecret(
+                            new String(credentialsMap.get("USER_NAME"))));
+                }
+
+                else{
+                    // Send Access-Reject
+                    System.out.println("Access-Reject. Reason: SHARED_SECRET does not exist for this client");
+                }
+
                 // Authenticate
                 System.out.println("Proceed to Authenticate: USER_PASSWORD and USER_NAME provided");
+                boolean isUserAuthenticated = userManager.isUserAuthenticated(credentialsMap.get("USER_NAME"),
+                        credentialsMap.get("USER_PASSWORD"), credentialsMap.get("REQUEST_AUTHENTICATOR"),
+                        credentialsMap.get("SHARED_SECRET"));
+
+                if(isUserAuthenticated){
+                    // Send Access-Accept
+                }
+
+                else{
+                    // Send Access-Reject
+                }
             }
 
             else{
