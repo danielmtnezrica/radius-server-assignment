@@ -2,6 +2,11 @@ package org.danielmartinez.radius.packet;
 
 import org.danielmartinez.radius.packet.attribute.Attribute;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -84,7 +89,6 @@ public class RadiusPacket {
     }
 
     public List<Attribute> getAttributes() { return attributes; }
-
     public void setAttributes(List<Attribute> attributes) { this.attributes = attributes; }
 
     @Override
@@ -96,5 +100,33 @@ public class RadiusPacket {
                 ", authenticator=" + Arrays.toString(authenticator) +
                 ", attributes=" + attributes +
                 '}';
+    }
+
+    public void setAuthenticationResponse (RadiusPacket receivedRadiusPacket) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+
+        // Add RADIUS attributes
+        dos.writeByte(this.getCode());
+        dos.writeByte(this.getIdentifier());
+        dos.writeShort(this.getLength());
+        dos.write(receivedRadiusPacket.getAuthenticator());
+        dos.write("ABC".getBytes());
+
+        dos.flush();
+        byte[] hashBody = baos.toByteArray();
+
+        try{
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            md5.update(hashBody);
+            this.setAuthenticator(md5.digest());
+
+        }
+        catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        dos.close();
+        baos.close();
     }
 }

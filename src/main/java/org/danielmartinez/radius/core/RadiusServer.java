@@ -8,6 +8,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import org.danielmartinez.radius.constants.RadiusConstants;
 
@@ -39,10 +40,24 @@ public class RadiusServer {
                 System.out.println(receivedRadiusPacket.toString());
 
                 RadiusPacket responseRadiusPacket = processRadiusPacket(receivedRadiusPacket);
+
+                if(!Objects.isNull(responseRadiusPacket)){
+                    responseRadiusPacket.setAuthenticationResponse(receivedRadiusPacket);
+
+                    // Send response
+                    InetAddress clientAddress = receivedUDPPacket.getAddress();
+                    int clientPort = receivedUDPPacket.getPort();
+                    byte[] responseData = createResponsePacket(responseRadiusPacket);
+                    DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, clientAddress, clientPort);
+                    serverSocket.send(responsePacket);
+                }
+
             }
         }
         catch(IOException e){
             System.out.println("IO: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -178,6 +193,8 @@ public class RadiusServer {
 
                 if(isUserAuthenticated){
                     // Send Access-Accept
+                    return new RadiusPacket(RadiusConstants.ACCESS_ACCEPT_CODE, radiusPacket.getIdentifier(),
+                            20, radiusPacket.getAuthenticator(), new ArrayList<>());
                 }
 
                 else{
@@ -197,5 +214,23 @@ public class RadiusServer {
         }
 
         return null;
+    }
+
+    private static byte[] createResponsePacket(RadiusPacket responseRadiusPacket) throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+
+        // Add RADIUS attributes
+        dos.writeByte(responseRadiusPacket.getCode()); // Code for Access-Accept
+        dos.writeByte(responseRadiusPacket.getIdentifier()); // Identifier
+        dos.writeShort(responseRadiusPacket.getLength()); // Length
+        dos.write(responseRadiusPacket.getAuthenticator());
+
+        dos.flush();
+        byte[] responsePacket = baos.toByteArray();
+        dos.close();
+        baos.close();
+
+        return responsePacket;
     }
 }
