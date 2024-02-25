@@ -1,6 +1,8 @@
 package org.danielmartinez.radius.packet;
 
-import java.util.*;
+import org.danielmartinez.radius.packet.attribute.Attribute;
+
+import java.util.List;
 
 /**
  * This class represents a RADIUS Packet following the RFC 2865 guidelines
@@ -67,14 +69,15 @@ public class RadiusPacket {
      * Attributes field: It contains a list of zero or more Attributes, detailed in Attribute class
      * - Variable length
      */
-    private List<Integer> attributes;
+    private List<Attribute> attributes;
 
     // Constructor
-    public RadiusPacket(short code, short identifier, short length, byte[] authenticator) {
+    public RadiusPacket(short code, short identifier, short length, byte[] authenticator, List<Attribute> attributes) {
         this.code = code;
         this.identifier = identifier;
         this.length = length;
         this.authenticator = authenticator;
+        this.attributes = attributes;
     }
 
     // Getters and Setters

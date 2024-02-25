@@ -8,8 +8,8 @@ import java.io.*;
  */
 public class RadiusServer {
 
-    private final Integer RADIUS_PORT = 1812;
-    private final Integer MTU = 1500;
+    private static final Integer RADIUS_PORT = 1812;
+    private static final Integer MTU = 1500;
 
     public static void main(String[] args) {
         RadiusServer radiusServer = new RadiusServer();
