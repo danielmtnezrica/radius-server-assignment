@@ -28,14 +28,16 @@ public class RadiusServer {
             byte[] buffer = new byte[RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH];
 
             while(true){
-                DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
-                serverSocket.receive(receivePacket);
+                DatagramPacket receivedUDPPacket = new DatagramPacket(buffer, buffer.length);
+                serverSocket.receive(receivedUDPPacket);
 
-                System.out.println("Packet received from " + receivePacket.getAddress() + ":"
-                        + receivePacket.getPort());
+                System.out.println("Packet received from " + receivedUDPPacket.getAddress() + ":"
+                        + receivedUDPPacket.getPort());
 
-                RadiusPacket radiusPacket = parseRadiusPacket(receivePacket);
-                System.out.println(radiusPacket.toString());
+                RadiusPacket receivedRadiusPacket = parseRadiusPacket(receivedUDPPacket);
+                System.out.println(receivedRadiusPacket.toString());
+
+                RadiusPacket responseRadiusPacket = processRadiusPacket(receivedRadiusPacket);
             }
         }
         catch(IOException e){
@@ -102,16 +104,40 @@ public class RadiusServer {
      *
      * @param radiusPacket
      */
-    private void processRadiusPacket(RadiusPacket radiusPacket){
+    private RadiusPacket processRadiusPacket(RadiusPacket radiusPacket){
         // Check RADIUS Packet Field
         if(radiusPacket.getLength() < RadiusConstants.MINIMUM_RADIUS_PACKET_LENGTH){
-            System.out.println("Packet discarded. Reason: The RADIUS packet field is too short: (" +
+            System.out.println("Packet discarded. Reason: The RADIUS length field is too short: (" +
                     radiusPacket.getLength() + " bytes) < " + RadiusConstants.MINIMUM_RADIUS_PACKET_LENGTH);
+            return null;
         }
 
         if(radiusPacket.getLength() > RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH){
-            System.out.println("Packet discarded. Reason: The RADIUS packet field is too long: (" +
+            System.out.println("Packet discarded. Reason: The RADIUS length field is too long: (" +
                     radiusPacket.getLength() + " bytes) > " + RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH);
+            return null;
         }
+
+        // Check RADIUS Code Field
+        if (radiusPacket.getCode() < 0 || radiusPacket.getCode() > 255){
+            System.out.println("Packet discarded. Reason: The RADIUS code field is out of bounds: Code" +
+                    radiusPacket.getLength());
+            return null;
+        }
+
+        else{
+            if (radiusPacket.getCode() == RadiusConstants.ACCESS_REQUEST_CODE){
+                return processAccessRequest();
+            }
+
+            else{
+                System.out.println("Packet discarded. Reason: Unknown RADIUS code: " + radiusPacket.getCode());
+                return null;
+            }
+        }
+    }
+
+    private RadiusPacket processAccessRequest(){
+        return null;
     }
 }
