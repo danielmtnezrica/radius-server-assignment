@@ -2,6 +2,7 @@ package org.danielmartinez.radius.packet;
 
 import org.danielmartinez.radius.packet.attribute.Attribute;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -17,46 +18,46 @@ public class RadiusPacket {
     private short code;
 
     // Code 1: Access-Request
-    private final short ACCESS_REQUEST_CODE = 1;
+    private static final short ACCESS_REQUEST_CODE = 1;
 
     // Code 2: Access-Accept
-    private final short ACCESS_ACCEPT_CODE = 2;
+    private static final short ACCESS_ACCEPT_CODE = 2;
 
     // Code 3: Access-Reject
-    private final short ACCESS_REJECT_CODE = 3;
+    private static final short ACCESS_REJECT_CODE = 3;
 
     // Code 4: Accounting-Request
-    private final short ACCOUNTING_REQUEST_CODE = 4;
+    private static final short ACCOUNTING_REQUEST_CODE = 4;
 
     // Code 5: Accounting-Response
-    private final short ACCOUNTING_RESPONSE_CODE = 5;
+    private static final short ACCOUNTING_RESPONSE_CODE = 5;
 
     // Code 11: Access-Challenge
-    private final short ACCESS_CHALLENGE_CODE = 11;
+    private static final short ACCESS_CHALLENGE_CODE = 11;
 
     // Code 12: Status-Server (experimental)
-    private final short STATUS_SERVER_CODE = 12;
+    private static final short STATUS_SERVER_CODE = 12;
 
     // Code 13: Status-Client (experimental)
-    private final short STATUS_CLIENT_CODE = 13;
+    private static final short STATUS_CLIENT_CODE = 13;
 
     // Code 255: Reserved
-    private final short RESERVED_CODE = 255;
+    private static final short RESERVED_CODE = 255;
 
     /**
      * Identifier field: It aids in matching requests and replies
-     * - 2 bytes
-     * - Values in range [20 - 4096]
+     * - 1 byte
+     * - Values in range [0 - 255]
      */
     private short identifier;
 
     /**
      * Length field: It indicates the length of the packet including the Code, Identifier, Length,
      * Authenticator and Attribute fields
-     * - 1 byte
-     * - Values in range [0 - 255]
+     * - 2 bytes
+     * - Values in range [20 - 4096]
      */
-    private short length;
+    private int length;
 
     /**
      * Authenticator field: It is used to authenticate the reply from the RADIUS server, and is used in the
@@ -72,7 +73,7 @@ public class RadiusPacket {
     private List<Attribute> attributes;
 
     // Constructor
-    public RadiusPacket(short code, short identifier, short length, byte[] authenticator, List<Attribute> attributes) {
+    public RadiusPacket(short code, short identifier, int length, byte[] authenticator, List<Attribute> attributes) {
         this.code = code;
         this.identifier = identifier;
         this.length = length;
@@ -95,7 +96,7 @@ public class RadiusPacket {
         this.identifier = identifier;
     }
 
-    public short getLength() {
+    public int getLength() {
         return length;
     }
     public void setLength(short length) {
@@ -107,5 +108,16 @@ public class RadiusPacket {
     }
     public void setAuthenticator(byte[] authenticator) {
         this.authenticator = authenticator;
+    }
+
+    @Override
+    public String toString() {
+        return "RadiusPacket{" +
+                "code=" + code +
+                ", identifier=" + identifier +
+                ", length=" + length +
+                ", authenticator=" + Arrays.toString(authenticator) +
+                ", attributes=" + attributes +
+                '}';
     }
 }

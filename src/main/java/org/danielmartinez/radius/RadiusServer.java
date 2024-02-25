@@ -1,15 +1,21 @@
 package org.danielmartinez.radius;
 
+import org.danielmartinez.radius.packet.RadiusPacket;
+import org.danielmartinez.radius.packet.attribute.Attribute;
+
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class represents the RADIUS Server that follows the RFC 2865 guidelines
  */
 public class RadiusServer {
 
-    private static final Integer RADIUS_PORT = 1812;
-    private static final Integer MTU = 1500;
+    private static final int RADIUS_PORT = 1812;
+    private static final int MINIMUM_PACKET_LENGTH = 20;
+    private static final int MAXIMUM_PACKET_LENGTH = 4096;
 
     public static void main(String[] args) {
         RadiusServer radiusServer = new RadiusServer();
@@ -21,7 +27,7 @@ public class RadiusServer {
             DatagramSocket serverSocket = new DatagramSocket(RADIUS_PORT);
             System.out.println("RADIUS Server started. Listening on port " + serverSocket.getLocalPort());
 
-            byte[] buffer = new byte[MTU];
+            byte[] buffer = new byte[MAXIMUM_PACKET_LENGTH];
 
             while(true){
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
@@ -29,6 +35,9 @@ public class RadiusServer {
 
                 System.out.println("Packet received from " + receivePacket.getAddress() + ":"
                         + receivePacket.getPort());
+
+                RadiusPacket radiusPacket = parseRadiusPacket(receivePacket);
+                System.out.println(radiusPacket.toString());
             }
         }
         catch(IOException e){
@@ -36,4 +45,58 @@ public class RadiusServer {
         }
     }
 
+    /**
+     * This method parses a UDP Packet Data that corresponds to a RADIUS Packet
+     * @param packet: It contains the UDP Data in byte[] format
+     * @return RadiusPacket: Byte fields in the UDP Data parsed to Java Data format
+     */
+    private RadiusPacket parseRadiusPacket(DatagramPacket packet){
+        // Check packet length
+        int packetLength = packet.getLength();
+        if(packetLength < MINIMUM_PACKET_LENGTH || packetLength > MAXIMUM_PACKET_LENGTH){
+            return null;
+        }
+
+        // Parse packet values
+        byte[] radiusData = packet.getData();
+
+        short radiusCode = radiusData[0];
+        short radiusIdentifier = radiusData[1];
+        int radiusLength = (((radiusData[2] & 0xFF) << 8) | (radiusData[3] & 0xFF));
+        byte[] radiusAuthenticator = new byte[16];
+        System.arraycopy(radiusData, 4, radiusAuthenticator, 0, 16);
+        List<Attribute> radiusAttributes = parseRadiusPacketAttributes(radiusData, radiusLength);
+
+        return new RadiusPacket(radiusCode, radiusIdentifier, radiusLength, radiusAuthenticator, radiusAttributes);
+    }
+
+    /**
+     * This method parses the RADIUS Attributes field in a RADIUS Packet
+     * @param radiusData : It contains the RADIUS Data in byte[] format
+     * @param radiusLength: The length field in the RADIUS Packet
+     * @return radiusAttributes: The Attributes field of a RADIUS Packet in List format
+     */
+    private List<Attribute> parseRadiusPacketAttributes(byte[] radiusData, int radiusLength){
+        List<Attribute> radiusAttributes = new ArrayList<>();
+
+        int radiusAttributeStartPosition = MINIMUM_PACKET_LENGTH;
+        while (radiusAttributeStartPosition < radiusLength) {
+            // Extract attribute type and length
+            short attributeType = radiusData[radiusAttributeStartPosition];
+            int attributeLength = radiusData[radiusAttributeStartPosition + 1];
+
+            // Extract attribute value
+            byte[] attributeValue = new byte[attributeLength];
+            System.arraycopy(radiusData, radiusAttributeStartPosition, attributeValue, 0, attributeLength);
+
+            // Add attribute to the attributes list
+            Attribute attribute = new Attribute(attributeType, attributeLength, attributeValue);
+            radiusAttributes.add(attribute);
+
+            // Move to the next attribute
+            radiusAttributeStartPosition += attributeLength;
+        }
+
+        return radiusAttributes;
+    }
 }

@@ -1,5 +1,7 @@
 package org.danielmartinez.radius.packet.attribute;
 
+import java.util.Arrays;
+
 /**
  * This class represents each Attribute that composes the Attributes field in a RADIUS packet
  */
@@ -137,7 +139,7 @@ public class Attribute {
      * Length field: It indicates the length of this attribute including the Type, Length and Value fields.
      * - 1 byte
      */
-    private short length;
+    private int length;
 
     /**
      * Value field: It contains information specific to the Attribute
@@ -148,10 +150,13 @@ public class Attribute {
     private byte[] value;
 
     // Constructor
-    public Attribute(short type, short length, byte[] value) {
+    public Attribute(short type, int length, byte[] value) {
         this.type = type;
         this.length = length;
         this.value = value;
+    }
+
+    public Attribute() {
     }
 
     // Getters and setters
@@ -160,7 +165,7 @@ public class Attribute {
         this.type = type;
     }
 
-    public short getLength() {
+    public int getLength() {
         return length;
     }
     public void setLength(short length) {
@@ -175,4 +180,12 @@ public class Attribute {
     }
 
 
+    @Override
+    public String toString() {
+        return "Attribute{" +
+                "type=" + type +
+                ", length=" + length +
+                ", value=" + Arrays.toString(value) +
+                '}';
+    }
 }
