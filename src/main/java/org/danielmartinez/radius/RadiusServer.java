@@ -6,6 +6,7 @@ import org.danielmartinez.radius.packet.attribute.Attribute;
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.danielmartinez.radius.constants.RadiusConstants;
@@ -127,7 +128,7 @@ public class RadiusServer {
 
         else{
             if (radiusPacket.getCode() == RadiusConstants.ACCESS_REQUEST_CODE){
-                return processAccessRequest();
+                return processAccessRequest(radiusPacket);
             }
 
             else{
@@ -137,7 +138,41 @@ public class RadiusServer {
         }
     }
 
-    private RadiusPacket processAccessRequest(){
+    private RadiusPacket processAccessRequest(RadiusPacket radiusPacket){
+        // Check RADIUS attributes
+        List<Attribute> radiusPacketAttributes = radiusPacket.getAttributes();
+        HashMap<String, byte[]> credentialsMap = new HashMap<>();
+
+        for (Attribute attribute: radiusPacketAttributes){
+            if(attribute.getType() == RadiusConstants.USER_NAME){
+                credentialsMap.put("USER_NAME", attribute.getValue());
+
+            }
+            else if(attribute.getType() == RadiusConstants.USER_PASSWORD){
+                credentialsMap.put("USER_PASSWORD", attribute.getValue());
+            }
+        }
+
+        if(credentialsMap.containsKey("USER_PASSWORD")){
+            if(credentialsMap.containsKey("USER_NAME")){
+                // Get SharedSecret
+                // Get Request Authenticator
+                // Get User Password
+                // Authenticate
+                System.out.println("Proceed to Authenticate: USER_PASSWORD and USER_NAME provided");
+            }
+
+            else{
+                // Send Access-Reject
+                System.out.println("Access-Reject. Reason: USER_NAME SHOULD be specified");
+            }
+        }
+
+        else{
+            // Send Access-Reject
+            System.out.println("Access-Reject. Reason: USER_PASSWORD MUST be specified");
+        }
+
         return null;
     }
 }
