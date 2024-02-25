@@ -8,14 +8,12 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.danielmartinez.radius.constants.RadiusConstants;
+
 /**
  * This class represents the RADIUS Server that follows the RFC 2865 guidelines
  */
 public class RadiusServer {
-
-    private static final int RADIUS_LISTENING_PORT = 1812;
-    private static final int MINIMUM_RADIUS_PACKET_LENGTH = 20;
-    private static final int MAXIMUM_RADIUS_PACKET_LENGTH = 4096;
 
     public static void main(String[] args) {
         RadiusServer radiusServer = new RadiusServer();
@@ -24,10 +22,10 @@ public class RadiusServer {
 
     public void start(){
         try{
-            DatagramSocket serverSocket = new DatagramSocket(RADIUS_LISTENING_PORT);
+            DatagramSocket serverSocket = new DatagramSocket(RadiusConstants.RADIUS_LISTENING_PORT);
             System.out.println("RADIUS Server started. Listening on port " + serverSocket.getLocalPort());
 
-            byte[] buffer = new byte[MAXIMUM_RADIUS_PACKET_LENGTH];
+            byte[] buffer = new byte[RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH];
 
             while(true){
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
@@ -53,7 +51,7 @@ public class RadiusServer {
     private RadiusPacket parseRadiusPacket(DatagramPacket packet){
         // Check packet length
         int packetLength = packet.getLength();
-        if(packetLength < MINIMUM_RADIUS_PACKET_LENGTH || packetLength > MAXIMUM_RADIUS_PACKET_LENGTH){
+        if(packetLength < RadiusConstants.MINIMUM_RADIUS_PACKET_LENGTH || packetLength > RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH){
             return null;
         }
 
@@ -79,7 +77,7 @@ public class RadiusServer {
     private List<Attribute> parseRadiusPacketAttributes(byte[] radiusData, int radiusLength){
         List<Attribute> radiusAttributes = new ArrayList<>();
 
-        int radiusAttributeStartPosition = MINIMUM_RADIUS_PACKET_LENGTH;
+        int radiusAttributeStartPosition = RadiusConstants.MINIMUM_RADIUS_PACKET_LENGTH;
         while (radiusAttributeStartPosition < radiusLength) {
             // Extract attribute type and length
             short attributeType = radiusData[radiusAttributeStartPosition];
@@ -106,12 +104,14 @@ public class RadiusServer {
      */
     private void processRadiusPacket(RadiusPacket radiusPacket){
         // Check RADIUS Packet Field
-        if(radiusPacket.getLength() < MINIMUM_RADIUS_PACKET_LENGTH){
-            System.out.println("Packet discarded. Reason: The RADIUS packet field is too short: (" + radiusPacket.getLength() + " bytes) < " + MINIMUM_RADIUS_PACKET_LENGTH);
+        if(radiusPacket.getLength() < RadiusConstants.MINIMUM_RADIUS_PACKET_LENGTH){
+            System.out.println("Packet discarded. Reason: The RADIUS packet field is too short: (" +
+                    radiusPacket.getLength() + " bytes) < " + RadiusConstants.MINIMUM_RADIUS_PACKET_LENGTH);
         }
 
-        if(radiusPacket.getLength() > MAXIMUM_RADIUS_PACKET_LENGTH){
-            System.out.println("Packet discarded. Reason: The RADIUS packet field is too long: (" + radiusPacket.getLength() + " bytes) > " + MAXIMUM_RADIUS_PACKET_LENGTH);
+        if(radiusPacket.getLength() > RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH){
+            System.out.println("Packet discarded. Reason: The RADIUS packet field is too long: (" +
+                    radiusPacket.getLength() + " bytes) > " + RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH);
         }
     }
 }

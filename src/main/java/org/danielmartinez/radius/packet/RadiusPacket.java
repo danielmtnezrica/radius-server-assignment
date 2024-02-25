@@ -17,33 +17,6 @@ public class RadiusPacket {
      */
     private short code;
 
-    // Code 1: Access-Request
-    private static final short ACCESS_REQUEST_CODE = 1;
-
-    // Code 2: Access-Accept
-    private static final short ACCESS_ACCEPT_CODE = 2;
-
-    // Code 3: Access-Reject
-    private static final short ACCESS_REJECT_CODE = 3;
-
-    // Code 4: Accounting-Request
-    private static final short ACCOUNTING_REQUEST_CODE = 4;
-
-    // Code 5: Accounting-Response
-    private static final short ACCOUNTING_RESPONSE_CODE = 5;
-
-    // Code 11: Access-Challenge
-    private static final short ACCESS_CHALLENGE_CODE = 11;
-
-    // Code 12: Status-Server (experimental)
-    private static final short STATUS_SERVER_CODE = 12;
-
-    // Code 13: Status-Client (experimental)
-    private static final short STATUS_CLIENT_CODE = 13;
-
-    // Code 255: Reserved
-    private static final short RESERVED_CODE = 255;
-
     /**
      * Identifier field: It aids in matching requests and replies
      * - 1 byte
