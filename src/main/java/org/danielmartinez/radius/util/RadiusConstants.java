@@ -1,4 +1,4 @@
-package org.danielmartinez.radius.constants;
+package org.danielmartinez.radius.util;
 
 public class RadiusConstants {
 
@@ -170,4 +170,15 @@ public class RadiusConstants {
     public static final String ACCESS_REJECT_NO_USER_NAME = "USER_NAME SHOULD be specified";
     public static final String ACCESS_REJECT_NO_SHARED_SECRET = "SHARED_SECRET does not exist for this client";
     public static final String ACCESS_REJECT_UNKNOWN_USER_NAME = "Unknown USER_NAME";
+
+    /**
+     * Packet discarded reasons
+     */
+
+    public static final String PACKET_DISCARDED_PACKET_LENGTH = "The Packet length does not match the requirements";
+    public static final String PACKET_DISCARDED_RADIUS_LENGTH_SHORT = "The RADIUS length field is too short";
+    public static final String PACKET_DISCARDED_RADIUS_LENGTH_LONG = "The RADIUS length field is too long";
+    public static final String PACKET_DISCARDED_RADIUS_CODE_WRONG = "The RADIUS code field is out of bounds";
+    public static final String PACKET_DISCARDED_RADIUS_CODE_UNKNOWN = "The RADIUS code field is unknown";
+
 }

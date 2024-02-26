@@ -94,13 +94,7 @@ public class UserManager {
      * @return
      */
     public boolean validateHash(byte[] clientHash, byte[] serverHash){
-        if (Arrays.equals(clientHash, serverHash)){
-            return true;
-        }
-
-        else{
-            return false;
-        }
+        return Arrays.equals(clientHash, serverHash);
     }
 
     /**
@@ -154,8 +148,7 @@ public class UserManager {
                 }
             }
         } catch (NoSuchAlgorithmException e) {
-            // Handle NoSuchAlgorithmException
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         return encodedPassword;

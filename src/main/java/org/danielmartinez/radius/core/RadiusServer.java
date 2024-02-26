@@ -1,5 +1,6 @@
 package org.danielmartinez.radius.core;
 
+import org.danielmartinez.radius.exception.RadiusException;
 import org.danielmartinez.radius.packet.RadiusPacket;
 import org.danielmartinez.radius.packet.attribute.Attribute;
 
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import org.danielmartinez.radius.constants.RadiusConstants;
+import org.danielmartinez.radius.util.RadiusConstants;
 import org.danielmartinez.radius.repository.UserManager;
 
 /**
@@ -24,13 +25,14 @@ public class RadiusServer {
     }
 
     public void start(){
-        try{
-            DatagramSocket serverSocket = new DatagramSocket(RadiusConstants.RADIUS_LISTENING_PORT);
+        try(DatagramSocket serverSocket = new DatagramSocket(RadiusConstants.RADIUS_LISTENING_PORT)){
+
             System.out.println("RADIUS Server started. Listening on port " + serverSocket.getLocalPort());
 
             byte[] buffer = new byte[RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH];
 
             while(true){
+                // Receive a new UDP packet
                 DatagramPacket receiveUDPPacket = new DatagramPacket(buffer, buffer.length);
                 serverSocket.receive(receiveUDPPacket);
 
@@ -39,31 +41,26 @@ public class RadiusServer {
 
                 // Parse the received UDP Packet
                 RadiusPacket receiveRadiusPacket = parseUDPData(receiveUDPPacket.getData());
-                System.out.println(receiveRadiusPacket.toString());
+                System.out.println(receiveRadiusPacket);
 
                 // Process the Radius Packet accordingly
                 RadiusPacket responseRadiusPacket = processRadiusPacket(receiveRadiusPacket);
 
-
-                if(!Objects.isNull(responseRadiusPacket)){
-                    System.out.println("Response: " + responseRadiusPacket.toString());
-                    // Send response
-                    InetAddress clientAddress = receiveUDPPacket.getAddress();
-                    int clientPort = receiveUDPPacket.getPort();
-                    byte[] responseData = responseRadiusPacket.toByteArray();
-                    DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, clientAddress, clientPort);
-                    serverSocket.send(responsePacket);
-                }
+                // Send response
+                System.out.println("Response: " + responseRadiusPacket.toString());
+                InetAddress clientAddress = receiveUDPPacket.getAddress();
+                int clientPort = receiveUDPPacket.getPort();
+                byte[] responseData = responseRadiusPacket.toByteArray();
+                DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, clientAddress, clientPort);
+                serverSocket.send(responsePacket);
             }
-        }
-        catch(IOException e){
+        } catch (RadiusException e){
+            System.out.println("Packet discarded. Reason: " + e.getMessage());
+        } catch (IOException e){
             System.out.println("IO: " + e.getMessage());
+        } catch (RuntimeException e){
+            System.out.println("Runtime: " + e.getMessage());
         }
-
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
     }
 
     /**
@@ -76,15 +73,23 @@ public class RadiusServer {
         int rawLength = data.length;
         if(rawLength < RadiusConstants.MINIMUM_RADIUS_PACKET_LENGTH || rawLength >
                 RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH){
-            System.out.println("Packet discarded. Reason: The Packet length does not match the requirements");
-            return null;
+            throw new RadiusException(RadiusConstants.PACKET_DISCARDED_PACKET_LENGTH);
         }
 
+        // Extract RADIUS Code
         short radiusCode = data[0];
+
+        // Extract RADIUS Identifier
         short radiusIdentifier = data[1];
+
+        // Extract RADIUS Length
         int radiusLength = (((data[2] & 0xFF) << 8) | (data[3] & 0xFF));
+
+        // Extract RADIUS Authenticator
         byte[] radiusAuthenticator = new byte[16];
         System.arraycopy(data, 4, radiusAuthenticator, 0, 16);
+
+        // Extract RADIUS Attributes
         List<Attribute> radiusAttributes = parseRadiusPacketAttributes(data, radiusLength);
 
         return new RadiusPacket(radiusCode, radiusIdentifier, radiusLength, radiusAuthenticator, radiusAttributes);
@@ -101,11 +106,13 @@ public class RadiusServer {
 
         int radiusAttributeStartPosition = RadiusConstants.MINIMUM_RADIUS_PACKET_LENGTH;
         while (radiusAttributeStartPosition < radiusLength) {
-            // Extract attribute type and length
+            // Extract attribute Type
             short attributeType = radiusData[radiusAttributeStartPosition];
+
+            // Extract attribute Length
             int attributeLength = radiusData[radiusAttributeStartPosition + 1];
 
-            // Extract attribute value
+            // Extract attribute Value
             byte[] attributeValue = new byte[attributeLength - 2];
             System.arraycopy(radiusData, radiusAttributeStartPosition + 2, attributeValue, 0, attributeLength - 2);
 
@@ -128,32 +135,25 @@ public class RadiusServer {
     private RadiusPacket processRadiusPacket(RadiusPacket radiusPacket){
         // Check RADIUS Length Field
         if(radiusPacket.getLength() < RadiusConstants.MINIMUM_RADIUS_PACKET_LENGTH){
-            System.out.println("Packet discarded. Reason: The RADIUS length field is too short: (" +
-                    radiusPacket.getLength() + " bytes) < " + RadiusConstants.MINIMUM_RADIUS_PACKET_LENGTH);
-            return null;
+            throw new RadiusException(RadiusConstants.PACKET_DISCARDED_RADIUS_LENGTH_SHORT);
         }
 
         if(radiusPacket.getLength() > RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH){
-            System.out.println("Packet discarded. Reason: The RADIUS length field is too long: (" +
-                    radiusPacket.getLength() + " bytes) > " + RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH);
-            return null;
+            throw new RadiusException(RadiusConstants.PACKET_DISCARDED_RADIUS_LENGTH_LONG);
         }
 
         // Check RADIUS Code Field
         if (radiusPacket.getCode() < 0 || radiusPacket.getCode() > 255){
-            System.out.println("Packet discarded. Reason: The RADIUS code field is out of bounds: Code" +
-                    radiusPacket.getLength());
-            return null;
+            throw new RadiusException(RadiusConstants.PACKET_DISCARDED_RADIUS_CODE_WRONG);
         }
 
+        // Process RADIUS Code Field
         else{
-            if (radiusPacket.getCode() == RadiusConstants.ACCESS_REQUEST_CODE){
-                return processAccessRequest(radiusPacket);
-            }
-
-            else{
-                System.out.println("Packet discarded. Reason: Unknown RADIUS Code: " + radiusPacket.getCode());
-                return null;
+            switch(radiusPacket.getCode()){
+                case RadiusConstants.ACCESS_REQUEST_CODE:
+                    return processAccessRequest(radiusPacket);
+                default:
+                    throw new RadiusException(RadiusConstants.PACKET_DISCARDED_RADIUS_CODE_UNKNOWN);
             }
         }
     }
@@ -187,24 +187,9 @@ public class RadiusServer {
 
         else{
             // Send Access-Reject
-            System.out.println("Access-Reject. Reason: SHARED_SECRET does not exist for this client");
-
-            RadiusPacket accessRejectPacket = new RadiusPacket(RadiusConstants.ACCESS_REJECT_CODE,
-                    radiusPacket.getIdentifier(), radiusPacket.getAuthenticator());
-            accessRejectPacket.setAttribute(RadiusConstants.REPLY_MESSAGE, 0,
-                    RadiusConstants.ACCESS_REJECT_NO_SHARED_SECRET.getBytes());
-            try{
-                accessRejectPacket.setLength(accessRejectPacket.calculateLength());
-                accessRejectPacket.setAuthenticatorResponse(radiusPacket, credentialsMap.get("SHARED_SECRET"),
-                        accessRejectPacket.getAttributes());
-
-                return accessRejectPacket;
-            }
-
-            catch (Exception e){
-                e.printStackTrace();
-                return null;
-            }
+            System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_NO_SHARED_SECRET);
+            return RadiusPacket.createAccessReject(radiusPacket, credentialsMap.get("SHARED_SECRET"),
+                    RadiusConstants.ACCESS_REJECT_NO_SHARED_SECRET);
         }
 
         if(credentialsMap.containsKey("USER_PASSWORD")){
@@ -213,92 +198,37 @@ public class RadiusServer {
                 credentialsMap.put("REQUEST_AUTHENTICATOR", radiusPacket.getAuthenticator());
 
                 // Authenticate
-                System.out.println("Proceed to Authenticate: USER_PASSWORD and USER_NAME provided");
                 boolean isUserAuthenticated = userManager.isUserAuthenticated(credentialsMap.get("USER_NAME"),
                         credentialsMap.get("USER_PASSWORD"), credentialsMap.get("REQUEST_AUTHENTICATOR"),
                         credentialsMap.get("SHARED_SECRET"));
 
                 if(isUserAuthenticated){
-                    System.out.println("User is authenticated");
                     // Send Access-Accept
-                    RadiusPacket accessAcceptPacket = new RadiusPacket(RadiusConstants.ACCESS_ACCEPT_CODE,
-                            radiusPacket.getIdentifier(), radiusPacket.getAuthenticator());
-                    try{
-                        accessAcceptPacket.setLength(accessAcceptPacket.calculateLength());
-                        accessAcceptPacket.setAuthenticatorResponse(radiusPacket, credentialsMap.get("SHARED_SECRET"),
-                                accessAcceptPacket.getAttributes());
-
-                        return accessAcceptPacket;
-                    }
-
-                    catch (Exception e){
-                        e.printStackTrace();
-                        return null;
-                    }
+                    System.out.println("Access-Accept. User is authenticated");
+                    return RadiusPacket.createAccessAccept(radiusPacket, credentialsMap.get("SHARED_SECRET"));
                 }
 
                 else{
                     // Send Access-Reject
-                    System.out.println("Access-Reject. Reason: Wrong User Credentials");
-
-                    RadiusPacket accessRejectPacket = new RadiusPacket(RadiusConstants.ACCESS_REJECT_CODE,
-                            radiusPacket.getIdentifier(), radiusPacket.getAuthenticator());
-                    try{
-                        accessRejectPacket.setLength(accessRejectPacket.calculateLength());
-                        accessRejectPacket.setAuthenticatorResponse(radiusPacket, credentialsMap.get("SHARED_SECRET"),
-                                accessRejectPacket.getAttributes());
-
-                        return accessRejectPacket;
-                    }
-
-                    catch (Exception e){
-                        e.printStackTrace();
-                        return null;
-                    }
+                    System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_BAD_CREDENTIALS);
+                    return RadiusPacket.createAccessReject(radiusPacket, credentialsMap.get("SHARED_SECRET"),
+                            RadiusConstants.ACCESS_REJECT_BAD_CREDENTIALS);
                 }
             }
 
             else{
                 // Send Access-Reject
-                System.out.println("Access-Reject. Reason: USER_NAME SHOULD be specified");
-
-                RadiusPacket accessRejectPacket = new RadiusPacket(RadiusConstants.ACCESS_REJECT_CODE,
-                        radiusPacket.getIdentifier(), radiusPacket.getAuthenticator());
-
-                try{
-                    accessRejectPacket.setLength(accessRejectPacket.calculateLength());
-                    accessRejectPacket.setAuthenticatorResponse(radiusPacket, credentialsMap.get("SHARED_SECRET"),
-                            accessRejectPacket.getAttributes());
-
-                    return accessRejectPacket;
-                }
-
-                catch (Exception e){
-                    e.printStackTrace();
-                    return null;
-                }
+                System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_NO_USER_NAME);
+                return RadiusPacket.createAccessReject(radiusPacket, credentialsMap.get("SHARED_SECRET"),
+                        RadiusConstants.ACCESS_REJECT_NO_USER_NAME);
             }
         }
 
         else{
             // Send Access-Reject
-            System.out.println("Access-Reject. Reason: USER_PASSWORD MUST be specified");
-
-            RadiusPacket accessRejectPacket = new RadiusPacket(RadiusConstants.ACCESS_REJECT_CODE,
-                    radiusPacket.getIdentifier(), radiusPacket.getAuthenticator());
-
-            try{
-                accessRejectPacket.setLength(accessRejectPacket.calculateLength());
-                accessRejectPacket.setAuthenticatorResponse(radiusPacket, credentialsMap.get("SHARED_SECRET"),
-                        accessRejectPacket.getAttributes());
-
-                return accessRejectPacket;
-            }
-
-            catch (Exception e){
-                e.printStackTrace();
-                return null;
-            }
+            System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_NO_PASSWORD);
+            return RadiusPacket.createAccessReject(radiusPacket, credentialsMap.get("SHARED_SECRET"),
+                    RadiusConstants.ACCESS_REJECT_NO_PASSWORD);
         }
     }
 }
