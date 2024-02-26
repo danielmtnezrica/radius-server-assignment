@@ -1,4 +1,4 @@
-package org.danielmartinez.radius.packet.attribute;
+package org.danielmartinez.radius.packet;
 
 import java.util.Arrays;
 
@@ -21,8 +21,6 @@ public class Attribute {
     /**
      * Value field: It contains information specific to the Attribute
      * - 0 or more bytes.
-     * *NOTE: In this implementation, we only consider that this value follows 'string-1' format,
-     * which is composed of maximum 253 octets composed of binary data
      */
     private byte[] value;
 
@@ -57,10 +55,10 @@ public class Attribute {
 
     @Override
     public String toString() {
-        return "Attribute{" +
+        return "[" +
                 "type=" + type +
                 ", length=" + length +
                 ", value=" + Arrays.toString(value) +
-                '}';
+                ']';
     }
 }

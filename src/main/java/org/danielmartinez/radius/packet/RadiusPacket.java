@@ -1,6 +1,5 @@
 package org.danielmartinez.radius.packet;
 
-import org.danielmartinez.radius.packet.attribute.Attribute;
 import org.danielmartinez.radius.util.RadiusConstants;
 
 import java.io.ByteArrayOutputStream;
@@ -11,7 +10,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This class represents a RADIUS Packet following the RFC 2865 guidelines
@@ -72,33 +70,17 @@ public class RadiusPacket {
     }
 
     // Getters and Setters
-    public short getCode() {
-        return code;
-    }
-    public void setCode(short code) {
-        this.code = code;
-    }
+    public short getCode() { return code; }
+    public void setCode(short code) { this.code = code; }
 
-    public short getIdentifier() {
-        return identifier;
-    }
-    public void setIdentifier(short identifier) {
-        this.identifier = identifier;
-    }
+    public short getIdentifier() { return identifier; }
+    public void setIdentifier(short identifier) { this.identifier = identifier; }
 
-    public int getLength() {
-        return length;
-    }
-    public void setLength(short length) {
-        this.length = length;
-    }
+    public int getLength() { return length; }
+    public void setLength(short length) { this.length = length; }
 
-    public byte[] getAuthenticator() {
-        return authenticator;
-    }
-    public void setAuthenticator(byte[] authenticator) {
-        this.authenticator = authenticator;
-    }
+    public byte[] getAuthenticator() { return authenticator; }
+    public void setAuthenticator(byte[] authenticator) { this.authenticator = authenticator; }
 
     public List<Attribute> getAttributes() { return attributes; }
     public void setAttributes(List<Attribute> attributes) { this.attributes = attributes; }
@@ -111,13 +93,13 @@ public class RadiusPacket {
 
     @Override
     public String toString() {
-        return "RadiusPacket{" +
+        return "[" +
                 "code=" + code +
                 ", identifier=" + identifier +
                 ", length=" + length +
                 ", authenticator=" + Arrays.toString(authenticator) +
                 ", attributes=" + attributes +
-                '}';
+                ']';
     }
 
     /**
@@ -131,7 +113,6 @@ public class RadiusPacket {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
 
-        // Add RADIUS attributes
         try {
             dos.writeByte(this.getCode());
             dos.writeByte(this.getIdentifier());
@@ -170,7 +151,6 @@ public class RadiusPacket {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
 
-        // Add RADIUS attributes
         try {
             dos.writeByte(this.getCode());
             dos.writeByte(this.getIdentifier());
@@ -205,7 +185,6 @@ public class RadiusPacket {
         DataOutputStream dos = new DataOutputStream(baos);
         short radiusPacketLength;
 
-        // Add RADIUS attributes
         try {
             dos.writeByte(this.getCode());
             dos.writeByte(this.getIdentifier());

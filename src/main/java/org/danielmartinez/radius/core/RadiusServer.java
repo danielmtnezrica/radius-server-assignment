@@ -2,14 +2,13 @@ package org.danielmartinez.radius.core;
 
 import org.danielmartinez.radius.exception.RadiusException;
 import org.danielmartinez.radius.packet.RadiusPacket;
-import org.danielmartinez.radius.packet.attribute.Attribute;
+import org.danielmartinez.radius.packet.Attribute;
 
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 import org.danielmartinez.radius.util.RadiusConstants;
 import org.danielmartinez.radius.repository.UserManager;
@@ -24,10 +23,14 @@ public class RadiusServer {
         radiusServer.start();
     }
 
+
+    /**
+     *
+     */
     public void start(){
         try(DatagramSocket serverSocket = new DatagramSocket(RadiusConstants.RADIUS_LISTENING_PORT)){
 
-            System.out.println("RADIUS Server started. Listening on port " + serverSocket.getLocalPort());
+            System.out.println("RADIUS Server started. Listening on port " + serverSocket.getLocalPort() + "\n");
 
             byte[] buffer = new byte[RadiusConstants.MAXIMUM_RADIUS_PACKET_LENGTH];
 
@@ -36,23 +39,26 @@ public class RadiusServer {
                 DatagramPacket receiveUDPPacket = new DatagramPacket(buffer, buffer.length);
                 serverSocket.receive(receiveUDPPacket);
 
+                System.out.println("--------------------");
                 System.out.println("Packet received from " + receiveUDPPacket.getAddress() + ":"
                         + receiveUDPPacket.getPort());
 
                 // Parse the received UDP Packet
                 RadiusPacket receiveRadiusPacket = parseUDPData(receiveUDPPacket.getData());
-                System.out.println(receiveRadiusPacket);
+                System.out.println("Received RADIUS Packet content: " + receiveRadiusPacket);
 
                 // Process the Radius Packet accordingly
                 RadiusPacket responseRadiusPacket = processRadiusPacket(receiveRadiusPacket);
 
                 // Send response
-                System.out.println("Response: " + responseRadiusPacket.toString());
+                System.out.println("Response RADIUS Packet content: " + responseRadiusPacket.toString());
                 InetAddress clientAddress = receiveUDPPacket.getAddress();
                 int clientPort = receiveUDPPacket.getPort();
                 byte[] responseData = responseRadiusPacket.toByteArray();
                 DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, clientAddress, clientPort);
                 serverSocket.send(responsePacket);
+
+                System.out.println("-------------------- \n");
             }
         } catch (RadiusException e){
             System.out.println("Packet discarded. Reason: " + e.getMessage());

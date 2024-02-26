@@ -7,13 +7,25 @@ import java.util.Map;
 
 import java.security.MessageDigest;
 
+/**
+ *
+ */
 public class UserManager {
+    /**
+     *
+     */
     // HashMap to store user-password pairs
     private final Map<String, byte[]> userPasswordRepository;
 
+    /**
+     *
+     */
     // HashMap to store client-sharedSecret pairs
     private final Map<String, byte[]> clientSharedSecretRepository;
 
+    /**
+     *
+     */
     // Constructor
     public UserManager() {
         this.userPasswordRepository = new HashMap<>();
@@ -21,6 +33,9 @@ public class UserManager {
         setUp();
     }
 
+    /**
+     *
+     */
     // Method that inserts some data when initializing UserManager
     public void setUp(){
         addUser("frans1", "fran123!".getBytes());
@@ -30,31 +45,67 @@ public class UserManager {
     }
 
     // Method to add a user-password pair to the repository
+
+    /**
+     *
+     * @param username
+     * @param password
+     */
     public void addUser(String username, byte[] password) {
         userPasswordRepository.put(username, password);
     }
 
     // Method to add a client-sharedSecret pair to the repository
+
+    /**
+     *
+     * @param clientId
+     * @param sharedSecret
+     */
     public void addClient(String clientId, byte[] sharedSecret) {
         clientSharedSecretRepository.put(clientId, sharedSecret);
     }
 
     // Method to authenticate a user
+
+    /**
+     *
+     * @param username
+     * @return
+     */
     public byte[] getPassword(String username) {
         return userPasswordRepository.get(username);
     }
 
     // Method to retrieve the shared secret for a client
+
+    /**
+     *
+     * @param clientId
+     * @return
+     */
     public byte[] getSharedSecret(String clientId) {
         return clientSharedSecretRepository.get(clientId);
     }
 
     // Method to check if a client exists
+
+    /**
+     *
+     * @param clientId
+     * @return
+     */
     public boolean clientExists(String clientId) {
         return clientSharedSecretRepository.containsKey(clientId);
     }
 
     // Method to check if a user exists
+
+    /**
+     *
+     * @param username
+     * @return
+     */
     public boolean userExists(String username) {
         return userPasswordRepository.containsKey(username);
     }
@@ -72,7 +123,6 @@ public class UserManager {
 
         // Get User Password
         if(!userExists(new String(username))){
-            System.out.println("Access-Reject. Reason: Unknown USER_NAME");
             return false;
         }
 

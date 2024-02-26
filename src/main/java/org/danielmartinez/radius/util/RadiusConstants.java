@@ -1,5 +1,8 @@
 package org.danielmartinez.radius.util;
 
+/**
+ *
+ */
 public class RadiusConstants {
 
     public static final int RADIUS_LISTENING_PORT = 1812;
