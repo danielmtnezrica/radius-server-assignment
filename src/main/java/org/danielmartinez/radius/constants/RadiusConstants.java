@@ -6,6 +6,9 @@ public class RadiusConstants {
     public static final int MINIMUM_RADIUS_PACKET_LENGTH = 20;
     public static final int MAXIMUM_RADIUS_PACKET_LENGTH = 4096;
 
+    /**
+     * RADIUS Code values
+     */
     // Code 1: Access-Request
     public static final short ACCESS_REQUEST_CODE = 1;
 
@@ -33,6 +36,9 @@ public class RadiusConstants {
     // Code 255: Reserved
     public static final short RESERVED_CODE = 255;
 
+    /**
+     * RADIUS Attribute-Type values
+     */
     // Type 1: User-Name
     public static final short USER_NAME = 1;
 
@@ -155,4 +161,13 @@ public class RadiusConstants {
 
     // Type 63: Login-LAT-Port
     public static final short LOGIN_LAT_PORT = 63;
+
+    /**
+     * Access-Reject reasons
+     */
+    public static final String ACCESS_REJECT_NO_PASSWORD = "USER_PASSWORD MUST be specified";
+    public static final String ACCESS_REJECT_BAD_CREDENTIALS = "Wrong User Credentials";
+    public static final String ACCESS_REJECT_NO_USER_NAME = "USER_NAME SHOULD be specified";
+    public static final String ACCESS_REJECT_NO_SHARED_SECRET = "SHARED_SECRET does not exist for this client";
+    public static final String ACCESS_REJECT_UNKNOWN_USER_NAME = "Unknown USER_NAME";
 }

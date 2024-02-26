@@ -103,6 +103,7 @@ public class RadiusPacket {
 
     public void setAttribute(short type, int length, byte[] value){
         Attribute attribute = new Attribute(type, length, value);
+        attribute.setLength((short) (2 + value.length));
         this.attributes.add(attribute);
     }
 
@@ -123,7 +124,8 @@ public class RadiusPacket {
      * @param sharedSecret
      * @throws IOException
      */
-    public void setAuthenticatorResponse(RadiusPacket receivedRadiusPacket, byte[] sharedSecret) throws IOException {
+    public void setAuthenticatorResponse(RadiusPacket receivedRadiusPacket, byte[] sharedSecret,
+                                         List<Attribute> responseAttributes) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
 
@@ -132,6 +134,13 @@ public class RadiusPacket {
         dos.writeByte(this.getIdentifier());
         dos.writeShort(this.getLength());
         dos.write(receivedRadiusPacket.getAuthenticator());
+
+        for(Attribute attribute: responseAttributes){
+            dos.writeByte(attribute.getType());
+            dos.writeByte(attribute.getLength());
+            dos.write(attribute.getValue());
+        }
+
         dos.write(sharedSecret);
 
         dos.flush();
@@ -165,6 +174,12 @@ public class RadiusPacket {
         dos.writeByte(this.getIdentifier());
         dos.writeShort(this.getLength());
         dos.write(this.getAuthenticator());
+
+        for(Attribute attribute: this.attributes){
+            dos.writeByte(attribute.getType());
+            dos.writeByte(attribute.getLength());
+            dos.write(attribute.getValue());
+        }
 
         dos.flush();
         byte[] responsePacket = baos.toByteArray();

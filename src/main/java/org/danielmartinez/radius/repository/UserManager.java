@@ -26,8 +26,7 @@ public class UserManager {
         addUser("frans1", "fran123!".getBytes());
         addUser("frans2", "fran123!".getBytes());
 
-        addClient("frans1", "ABC".getBytes());
-        addClient("frans2", "ABC".getBytes());
+        addClient("HARDCODED_CLIENTID", "ABC".getBytes());
     }
 
     // Method to add a user-password pair to the repository
@@ -73,7 +72,7 @@ public class UserManager {
 
         // Get User Password
         if(!userExists(new String(username))){
-            System.out.println("Access-Reject. Reason: USER_NAME does not exist");
+            System.out.println("Access-Reject. Reason: Unknown USER_NAME");
             return false;
         }
 

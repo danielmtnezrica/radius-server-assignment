@@ -44,7 +44,9 @@ public class RadiusServer {
                 // Process the Radius Packet accordingly
                 RadiusPacket responseRadiusPacket = processRadiusPacket(receiveRadiusPacket);
 
+
                 if(!Objects.isNull(responseRadiusPacket)){
+                    System.out.println("Response: " + responseRadiusPacket.toString());
                     // Send response
                     InetAddress clientAddress = receiveUDPPacket.getAddress();
                     int clientPort = receiveUDPPacket.getPort();
@@ -178,22 +180,37 @@ public class RadiusServer {
             }
         }
 
+        // Get SharedSecret
+        if(userManager.clientExists("HARDCODED_CLIENTID")){
+            credentialsMap.put("SHARED_SECRET", userManager.getSharedSecret("HARDCODED_CLIENTID"));
+        }
+
+        else{
+            // Send Access-Reject
+            System.out.println("Access-Reject. Reason: SHARED_SECRET does not exist for this client");
+
+            RadiusPacket accessRejectPacket = new RadiusPacket(RadiusConstants.ACCESS_REJECT_CODE,
+                    radiusPacket.getIdentifier(), radiusPacket.getAuthenticator());
+            accessRejectPacket.setAttribute(RadiusConstants.REPLY_MESSAGE, 0,
+                    RadiusConstants.ACCESS_REJECT_NO_SHARED_SECRET.getBytes());
+            try{
+                accessRejectPacket.setLength(accessRejectPacket.calculateLength());
+                accessRejectPacket.setAuthenticatorResponse(radiusPacket, credentialsMap.get("SHARED_SECRET"),
+                        accessRejectPacket.getAttributes());
+
+                return accessRejectPacket;
+            }
+
+            catch (Exception e){
+                e.printStackTrace();
+                return null;
+            }
+        }
+
         if(credentialsMap.containsKey("USER_PASSWORD")){
             if(credentialsMap.containsKey("USER_NAME")){
                 // Get Request Authenticator
                 credentialsMap.put("REQUEST_AUTHENTICATOR", radiusPacket.getAuthenticator());
-
-                // Get SharedSecret
-                if(userManager.clientExists(new String(credentialsMap.get("USER_NAME")))){
-                    credentialsMap.put("SHARED_SECRET", userManager.getSharedSecret(
-                            new String(credentialsMap.get("USER_NAME"))));
-                }
-
-                else{
-                    // Send Access-Reject
-                    System.out.println("Access-Reject. Reason: SHARED_SECRET does not exist for this client");
-                    return null;
-                }
 
                 // Authenticate
                 System.out.println("Proceed to Authenticate: USER_PASSWORD and USER_NAME provided");
@@ -207,8 +224,10 @@ public class RadiusServer {
                     RadiusPacket accessAcceptPacket = new RadiusPacket(RadiusConstants.ACCESS_ACCEPT_CODE,
                             radiusPacket.getIdentifier(), radiusPacket.getAuthenticator());
                     try{
-                        accessAcceptPacket.setAuthenticatorResponse(radiusPacket, credentialsMap.get("SHARED_SECRET"));
                         accessAcceptPacket.setLength(accessAcceptPacket.calculateLength());
+                        accessAcceptPacket.setAuthenticatorResponse(radiusPacket, credentialsMap.get("SHARED_SECRET"),
+                                accessAcceptPacket.getAttributes());
+
                         return accessAcceptPacket;
                     }
 
@@ -220,22 +239,66 @@ public class RadiusServer {
 
                 else{
                     // Send Access-Reject
-                    System.out.println("Access-Reject. Reason: User is NOT authenticated");
-                    return null;
+                    System.out.println("Access-Reject. Reason: Wrong User Credentials");
+
+                    RadiusPacket accessRejectPacket = new RadiusPacket(RadiusConstants.ACCESS_REJECT_CODE,
+                            radiusPacket.getIdentifier(), radiusPacket.getAuthenticator());
+                    try{
+                        accessRejectPacket.setLength(accessRejectPacket.calculateLength());
+                        accessRejectPacket.setAuthenticatorResponse(radiusPacket, credentialsMap.get("SHARED_SECRET"),
+                                accessRejectPacket.getAttributes());
+
+                        return accessRejectPacket;
+                    }
+
+                    catch (Exception e){
+                        e.printStackTrace();
+                        return null;
+                    }
                 }
             }
 
             else{
                 // Send Access-Reject
                 System.out.println("Access-Reject. Reason: USER_NAME SHOULD be specified");
-                return null;
+
+                RadiusPacket accessRejectPacket = new RadiusPacket(RadiusConstants.ACCESS_REJECT_CODE,
+                        radiusPacket.getIdentifier(), radiusPacket.getAuthenticator());
+
+                try{
+                    accessRejectPacket.setLength(accessRejectPacket.calculateLength());
+                    accessRejectPacket.setAuthenticatorResponse(radiusPacket, credentialsMap.get("SHARED_SECRET"),
+                            accessRejectPacket.getAttributes());
+
+                    return accessRejectPacket;
+                }
+
+                catch (Exception e){
+                    e.printStackTrace();
+                    return null;
+                }
             }
         }
 
         else{
             // Send Access-Reject
             System.out.println("Access-Reject. Reason: USER_PASSWORD MUST be specified");
-            return null;
+
+            RadiusPacket accessRejectPacket = new RadiusPacket(RadiusConstants.ACCESS_REJECT_CODE,
+                    radiusPacket.getIdentifier(), radiusPacket.getAuthenticator());
+
+            try{
+                accessRejectPacket.setLength(accessRejectPacket.calculateLength());
+                accessRejectPacket.setAuthenticatorResponse(radiusPacket, credentialsMap.get("SHARED_SECRET"),
+                        accessRejectPacket.getAttributes());
+
+                return accessRejectPacket;
+            }
+
+            catch (Exception e){
+                e.printStackTrace();
+                return null;
+            }
         }
     }
 }
