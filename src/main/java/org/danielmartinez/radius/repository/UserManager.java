@@ -1,4 +1,4 @@
-package org.danielmartinez.radius.core;
+package org.danielmartinez.radius.repository;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -17,10 +17,15 @@ public class UserManager {
     // Constructor
     public UserManager() {
         this.userPasswordRepository = new HashMap<>();
+        this.clientSharedSecretRepository = new HashMap<>();
+        setUp();
+    }
+
+    // Method that inserts some data when initializing UserManager
+    public void setUp(){
         addUser("frans1", "fran123!".getBytes());
         addUser("frans2", "fran123!".getBytes());
 
-        this.clientSharedSecretRepository = new HashMap<>();
         addClient("frans1", "ABC".getBytes());
         addClient("frans2", "ABC".getBytes());
     }
@@ -55,7 +60,14 @@ public class UserManager {
         return userPasswordRepository.containsKey(username);
     }
 
-    // Method to authenticate a user
+    /**
+     *
+     * @param username
+     * @param clientHash
+     * @param requestAuthenticator
+     * @param sharedSecret
+     * @return
+     */
     public boolean isUserAuthenticated(byte[] username, byte[] clientHash, byte[] requestAuthenticator, byte[] sharedSecret){
         byte[] plainPassword;
 
@@ -73,17 +85,32 @@ public class UserManager {
         byte[] serverHash = encodePassword(plainPassword, requestAuthenticator, sharedSecret);
 
         // Validate Hash
+        return validateHash(clientHash, serverHash);
+    }
+
+    /**
+     *
+     * @param clientHash
+     * @param serverHash
+     * @return
+     */
+    public boolean validateHash(byte[] clientHash, byte[] serverHash){
         if (Arrays.equals(clientHash, serverHash)){
-            System.out.println("User is authenticated");
             return true;
         }
 
         else{
-            System.out.println("Access-Reject. Reason: User is not authenticated");
             return false;
         }
     }
 
+    /**
+     *
+     * @param plainPassword
+     * @param requestAuthenticator
+     * @param sharedSecret
+     * @return
+     */
     public byte[] encodePassword(byte[] plainPassword, byte[] requestAuthenticator, byte[] sharedSecret) {
         byte[] encodedPassword;
 

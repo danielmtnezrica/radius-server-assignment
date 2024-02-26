@@ -7,6 +7,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -59,6 +60,15 @@ public class RadiusPacket {
         this.attributes = attributes;
     }
 
+    // Constructor
+    public RadiusPacket(short code, short identifier, byte[] authenticator) {
+        this.code = code;
+        this.identifier = identifier;
+        this.length = 0;
+        this.authenticator = authenticator;
+        this.attributes = new ArrayList<>();
+    }
+
     // Getters and Setters
     public short getCode() {
         return code;
@@ -91,6 +101,11 @@ public class RadiusPacket {
     public List<Attribute> getAttributes() { return attributes; }
     public void setAttributes(List<Attribute> attributes) { this.attributes = attributes; }
 
+    public void setAttribute(short type, int length, byte[] value){
+        Attribute attribute = new Attribute(type, length, value);
+        this.attributes.add(attribute);
+    }
+
     @Override
     public String toString() {
         return "RadiusPacket{" +
@@ -102,7 +117,13 @@ public class RadiusPacket {
                 '}';
     }
 
-    public void setAuthenticationResponse (RadiusPacket receivedRadiusPacket) throws IOException {
+    /**
+     *
+     * @param receivedRadiusPacket
+     * @param sharedSecret
+     * @throws IOException
+     */
+    public void setAuthenticatorResponse(RadiusPacket receivedRadiusPacket, byte[] sharedSecret) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
 
@@ -111,7 +132,7 @@ public class RadiusPacket {
         dos.writeByte(this.getIdentifier());
         dos.writeShort(this.getLength());
         dos.write(receivedRadiusPacket.getAuthenticator());
-        dos.write("ABC".getBytes());
+        dos.write(sharedSecret);
 
         dos.flush();
         byte[] hashBody = baos.toByteArray();
@@ -128,5 +149,58 @@ public class RadiusPacket {
 
         dos.close();
         baos.close();
+    }
+
+    /**
+     *
+     * @return
+     * @throws Exception
+     */
+    public byte[] toByteArray() throws Exception {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+
+        // Add RADIUS attributes
+        dos.writeByte(this.getCode());
+        dos.writeByte(this.getIdentifier());
+        dos.writeShort(this.getLength());
+        dos.write(this.getAuthenticator());
+
+        dos.flush();
+        byte[] responsePacket = baos.toByteArray();
+        dos.close();
+        baos.close();
+
+        return responsePacket;
+    }
+
+    /**
+     *
+     * @return
+     * @throws IOException
+     */
+    public short calculateLength() throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+
+        // Add RADIUS attributes
+        dos.writeByte(this.getCode());
+        dos.writeByte(this.getIdentifier());
+        dos.writeShort(this.getLength());
+        dos.write(this.getAuthenticator());
+
+        for(Attribute attribute: this.attributes){
+            dos.writeByte(attribute.getType());
+            dos.writeByte(attribute.getLength());
+            dos.write(attribute.getValue());
+        }
+
+        dos.flush();
+        byte[] bytePacket = baos.toByteArray();
+        short radiusPacketLength = (short) bytePacket.length;
+        dos.close();
+        baos.close();
+
+        return radiusPacketLength;
     }
 }
