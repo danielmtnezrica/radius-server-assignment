@@ -8,29 +8,30 @@ import java.util.Arrays;
 public class Attribute {
     /**
      * Type field: It identifies the type of RADIUS attribute
-     * - 1 byte
+     * Length: 1 Byte
      */
     private short type;
 
     /**
      * Length field: It indicates the length of this attribute including the Type, Length and Value fields.
-     * - 1 byte
+     * Length: 1 Byte
      */
     private int length;
 
     /**
      * Value field: It contains information specific to the Attribute
-     * - 0 or more bytes.
+     * Length: 0 or more bytes.
      */
     private byte[] value;
 
-    // Constructors
+    // Constructor
     public Attribute(short type, int length, byte[] value) {
         this.type = type;
         this.length = length;
         this.value = value;
     }
 
+    // Constructor
     public Attribute() {
     }
 
@@ -51,7 +52,6 @@ public class Attribute {
     public void setValue(byte[] value) {
         this.value = value;
     }
-
 
     @Override
     public String toString() {

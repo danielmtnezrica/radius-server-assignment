@@ -8,24 +8,19 @@ import java.util.Map;
 import java.security.MessageDigest;
 
 /**
- *
+ * This class implements all the logic related to the User Authentication
  */
 public class UserManager {
     /**
-     *
+     * HashMap to store user-password pairs, simulating a Database
      */
-    // HashMap to store user-password pairs
     private final Map<String, byte[]> userPasswordRepository;
 
     /**
-     *
+     * HashMap to store client-sharedSecret pairs, simulating a Database
      */
-    // HashMap to store client-sharedSecret pairs
     private final Map<String, byte[]> clientSharedSecretRepository;
 
-    /**
-     *
-     */
     // Constructor
     public UserManager() {
         this.userPasswordRepository = new HashMap<>();
@@ -34,9 +29,8 @@ public class UserManager {
     }
 
     /**
-     *
+     * This method inserts some data when initializing UserManager
      */
-    // Method that inserts some data when initializing UserManager
     public void setUp(){
         addUser("frans1", "fran123!".getBytes());
         addUser("frans2", "fran123!".getBytes());
@@ -44,79 +38,67 @@ public class UserManager {
         addClient("HARDCODED_CLIENTID", "ABC".getBytes());
     }
 
-    // Method to add a user-password pair to the repository
-
     /**
-     *
-     * @param username
-     * @param password
+     * Method to add a user-password pair to the repository
+     * @param username username
+     * @param password password
      */
     public void addUser(String username, byte[] password) {
         userPasswordRepository.put(username, password);
     }
 
-    // Method to add a client-sharedSecret pair to the repository
-
     /**
-     *
-     * @param clientId
-     * @param sharedSecret
+     * Method to add a client-sharedSecret pair to the repository
+     * @param clientId clientId
+     * @param sharedSecret sharedSecret
      */
     public void addClient(String clientId, byte[] sharedSecret) {
         clientSharedSecretRepository.put(clientId, sharedSecret);
     }
 
-    // Method to authenticate a user
-
     /**
-     *
-     * @param username
-     * @return
+     * Method to authenticate a user
+     * @param username username
+     * @return password
      */
     public byte[] getPassword(String username) {
         return userPasswordRepository.get(username);
     }
 
-    // Method to retrieve the shared secret for a client
-
     /**
-     *
-     * @param clientId
-     * @return
+     * Method to retrieve the shared secret for a client
+     * @param clientId clientId
+     * @return sharedSecret
      */
     public byte[] getSharedSecret(String clientId) {
         return clientSharedSecretRepository.get(clientId);
     }
 
-    // Method to check if a client exists
-
     /**
-     *
-     * @param clientId
-     * @return
+     * Method to check if a client exists
+     * @param clientId clientId
+     * @return boolean: True if exists
      */
     public boolean clientExists(String clientId) {
         return clientSharedSecretRepository.containsKey(clientId);
     }
 
-    // Method to check if a user exists
-
     /**
-     *
-     * @param username
-     * @return
+     * Method to check if a user exists
+     * @param username username
+     * @return boolean: True if exists
      */
     public boolean userExists(String username) {
         return userPasswordRepository.containsKey(username);
     }
 
     /**
-     *
-     * @param username
-     * @param clientHash
-     * @param requestAuthenticator
-     * @param sharedSecret
-     * @return
+     * This method checks if a user is authenticated in the Server Database
+     * @param username Username
+     * @param clientHash The Hash provided by the received Packet which includes the encrypted password
+     * @param requestAuthenticator Request Authenticator field
+     * @param sharedSecret Shared Secret between the RADIUS Client and the Server
+     * @return Boolean: True if it is authenticated
      */
     public boolean isUserAuthenticated(byte[] username, byte[] clientHash, byte[] requestAuthenticator, byte[] sharedSecret){
         byte[] plainPassword;
@@ -138,21 +120,13 @@ public class UserManager {
     }
 
     /**
-     *
-     * @param clientHash
-     * @param serverHash
-     * @return
-     */
-    public boolean validateHash(byte[] clientHash, byte[] serverHash){
-        return Arrays.equals(clientHash, serverHash);
-    }
-
-    /**
-     *
-     * @param plainPassword
-     * @param requestAuthenticator
-     * @param sharedSecret
-     * @return
+     * This method encodes a password by using the RADIUS method defined in the RFC 2865, using MD5 as the hashing
+     * algoithm. The server calculates the hash with the user credentials and check if it matches the hash provided by
+     * the user/client
+     * @param plainPassword Plain user password, obtained in the Server database
+     * @param requestAuthenticator Request Authenticator field, provided by the user
+     * @param sharedSecret Shared Secret between the RADIUS Client and the Server
+     * @return The encoded password / hash in byte[] format
      */
     public byte[] encodePassword(byte[] plainPassword, byte[] requestAuthenticator, byte[] sharedSecret) {
         byte[] encodedPassword;
@@ -202,5 +176,15 @@ public class UserManager {
         }
 
         return encodedPassword;
+    }
+
+    /**
+     * This method checks if the received hash and the hash calculated in the server side are equal
+     * @param clientHash Hash provided by the Client
+     * @param serverHash Hash calculated by the Server
+     * @return Boolean: True if it is equal
+     */
+    public boolean validateHash(byte[] clientHash, byte[] serverHash){
+        return Arrays.equals(clientHash, serverHash);
     }
 }

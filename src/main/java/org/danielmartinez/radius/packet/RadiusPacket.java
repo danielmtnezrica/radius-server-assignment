@@ -18,36 +18,35 @@ public class RadiusPacket {
 
     /**
      * Code field: It identifies the type of RADIUS packet
-     * - 1 byte
-     * - Values in range [0 - 255]
+     * Length: 1 Byte
+     * Values: Range [0 - 255]
      */
     private short code;
 
     /**
      * Identifier field: It aids in matching requests and replies
-     * - 1 byte
-     * - Values in range [0 - 255]
+     * Length: 1 Byte
+     * Values: Range [0 - 255]
      */
     private short identifier;
 
     /**
-     * Length field: It indicates the length of the packet including the Code, Identifier, Length,
-     * Authenticator and Attribute fields
-     * - 2 bytes
-     * - Values in range [20 - 4096]
+     * Length field: It indicates the length of the packet including the Code, Identifier, Length, Authenticator and Attribute fields
+     * Length: 2 Bytes
+     * Values Range [20 - 4096]
      */
     private int length;
 
     /**
      * Authenticator field: It is used to authenticate the reply from the RADIUS server, and is used in the
      * password hiding algorithm
-     * - 16 bytes
+     * Length: 16 Bytes
      */
     private byte[] authenticator;
 
     /**
      * Attributes field: It contains a list of zero or more Attributes, detailed in Attribute class
-     * - Variable length
+     * Length: Variable
      */
     private List<Attribute> attributes;
 
@@ -103,10 +102,9 @@ public class RadiusPacket {
     }
 
     /**
-     *
-     * @param receivedRadiusPacket
-     * @param sharedSecret
-     * @throws IOException
+     * This method calculates and sets the Authenticator Response field
+     * @param receivedRadiusPacket Received RADIUS Packet that triggers the response
+     * @param sharedSecret Shared Secret between RADIUS Client and Server
      */
     public void setAuthenticatorResponse(RadiusPacket receivedRadiusPacket, byte[] sharedSecret,
                                          List<Attribute> responseAttributes){
@@ -143,9 +141,8 @@ public class RadiusPacket {
     }
 
     /**
-     *
-     * @return
-     * @throws Exception
+     * This method transform RadiusPacket format into byte array (byte[]) format
+     * @return The packet in byte array format
      */
     public byte[] toByteArray(){
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -176,9 +173,8 @@ public class RadiusPacket {
     }
 
     /**
-     *
-     * @return
-     * @throws IOException
+     * This method calculates the length of a RadiusPacket based in all its fields
+     * @return The length of the RadiusPacket
      */
     public short calculateLength(){
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -211,10 +207,10 @@ public class RadiusPacket {
     }
 
     /**
-     *
-     * @param receivedRadiusPacket
-     * @param sharedSecret
-     * @return
+     * This method creates an Access-Accept RADIUS response
+     * @param receivedRadiusPacket The received RADIUS Packet that triggers the response
+     * @param sharedSecret Shared Secret between RADIUS Client and Server
+     * @return Access-Accept RADIUS response
      */
     public static RadiusPacket createAccessAccept(RadiusPacket receivedRadiusPacket, byte[] sharedSecret){
         RadiusPacket accessAcceptPacket = new RadiusPacket(RadiusConstants.ACCESS_ACCEPT_CODE,
@@ -228,11 +224,11 @@ public class RadiusPacket {
     }
 
     /**
-     *
-     * @param receivedRadiusPacket
-     * @param sharedSecret
-     * @param reason
-     * @return
+     * This method creates an Access-Reject RADIUS response
+     * @param receivedRadiusPacket The received RADIUS Packet that triggers the response
+     * @param sharedSecret Shared Secret between RADIUS Client and Server
+     * @param reason The reason why the received RADIUS Packet is not accepted
+     * @return Access-Reject RADIUS response
      */
     public static RadiusPacket createAccessReject(RadiusPacket receivedRadiusPacket, byte[] sharedSecret, String reason){
         RadiusPacket accessRejectPacket = new RadiusPacket(RadiusConstants.ACCESS_REJECT_CODE,
@@ -240,6 +236,8 @@ public class RadiusPacket {
 
         accessRejectPacket.setLength(accessRejectPacket.calculateLength());
 
+        // * NOTE: This line of code is used to send the reason to the client. As it is not processed by the
+        // Test Client, it is not implemented
         // accessRejectPacket.setAttribute(RadiusConstants.REPLY_MESSAGE, 0, reason.getBytes());
 
         accessRejectPacket.setAuthenticatorResponse(receivedRadiusPacket, sharedSecret,

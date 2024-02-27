@@ -1,14 +1,9 @@
 package org.danielmartinez.radius.util;
 
 /**
- *
+ * Constants related to RADIUS protocol
  */
 public class RadiusConstants {
-
-    public static final int RADIUS_LISTENING_PORT = 1812;
-    public static final int MINIMUM_RADIUS_PACKET_LENGTH = 20;
-    public static final int MAXIMUM_RADIUS_PACKET_LENGTH = 4096;
-
     /**
      * RADIUS Code values
      */
@@ -177,11 +172,17 @@ public class RadiusConstants {
     /**
      * Packet discarded reasons
      */
-
     public static final String PACKET_DISCARDED_PACKET_LENGTH = "The Packet length does not match the requirements";
     public static final String PACKET_DISCARDED_RADIUS_LENGTH_SHORT = "The RADIUS length field is too short";
     public static final String PACKET_DISCARDED_RADIUS_LENGTH_LONG = "The RADIUS length field is too long";
     public static final String PACKET_DISCARDED_RADIUS_CODE_WRONG = "The RADIUS code field is out of bounds";
     public static final String PACKET_DISCARDED_RADIUS_CODE_UNKNOWN = "The RADIUS code field is unknown";
 
+    /**
+     * Other constants
+     */
+
+    public static final int RADIUS_LISTENING_PORT = 1812;
+    public static final int MINIMUM_RADIUS_PACKET_LENGTH = 20;
+    public static final int MAXIMUM_RADIUS_PACKET_LENGTH = 4096;
 }

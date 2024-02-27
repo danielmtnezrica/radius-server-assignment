@@ -23,9 +23,8 @@ public class RadiusServer {
         radiusServer.start();
     }
 
-
     /**
-     *
+     * This method initializes the RADIUS Server
      */
     public void start(){
         try(DatagramSocket serverSocket = new DatagramSocket(RadiusConstants.RADIUS_LISTENING_PORT)){
@@ -40,6 +39,7 @@ public class RadiusServer {
                 serverSocket.receive(receiveUDPPacket);
 
                 System.out.println("--------------------");
+
                 System.out.println("Packet received from " + receiveUDPPacket.getAddress() + ":"
                         + receiveUDPPacket.getPort());
 
@@ -52,10 +52,9 @@ public class RadiusServer {
 
                 // Send response
                 System.out.println("Response RADIUS Packet content: " + responseRadiusPacket.toString());
-                InetAddress clientAddress = receiveUDPPacket.getAddress();
-                int clientPort = receiveUDPPacket.getPort();
                 byte[] responseData = responseRadiusPacket.toByteArray();
-                DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length, clientAddress, clientPort);
+                DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length,
+                        receiveUDPPacket.getAddress(), receiveUDPPacket.getPort());
                 serverSocket.send(responsePacket);
 
                 System.out.println("-------------------- \n");
@@ -171,11 +170,11 @@ public class RadiusServer {
      * @return An Access-Accept or an Access-Reject response
      */
     private RadiusPacket processAccessRequest(RadiusPacket radiusPacket){
-        // Check RADIUS attributes
         List<Attribute> radiusPacketAttributes = radiusPacket.getAttributes();
         HashMap<String, byte[]> credentialsMap = new HashMap<>();
         UserManager userManager = new UserManager();
 
+        // Get Username and password if received
         for (Attribute attribute: radiusPacketAttributes){
             if(attribute.getType() == RadiusConstants.USER_NAME){
                 credentialsMap.put("USER_NAME", attribute.getValue());
