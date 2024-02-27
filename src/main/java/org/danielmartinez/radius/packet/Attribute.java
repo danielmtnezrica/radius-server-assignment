@@ -10,7 +10,7 @@ public class Attribute {
      * Type field: It identifies the type of RADIUS attribute
      * Length: 1 Byte
      */
-    private short type;
+    private int type;
 
     /**
      * Length field: It indicates the length of this attribute including the Type, Length and Value fields.
@@ -25,7 +25,7 @@ public class Attribute {
     private byte[] value;
 
     // Constructor
-    public Attribute(short type, int length, byte[] value) {
+    public Attribute(int type, int length, byte[] value) {
         this.type = type;
         this.length = length;
         this.value = value;
@@ -36,15 +36,15 @@ public class Attribute {
     }
 
     // Getters and setters
-    public short getType() { return type; }
-    public void setType(short type) {
+    public int getType() { return type; }
+    public void setType(int type) {
         this.type = type;
     }
 
     public int getLength() {
         return length;
     }
-    public void setLength(short length) {
+    public void setLength(int length) {
         this.length = length;
     }
 

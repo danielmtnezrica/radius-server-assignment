@@ -21,14 +21,14 @@ public class RadiusPacket {
      * Length: 1 Byte
      * Values: Range [0 - 255]
      */
-    private short code;
+    private int code;
 
     /**
      * Identifier field: It aids in matching requests and replies
      * Length: 1 Byte
      * Values: Range [0 - 255]
      */
-    private short identifier;
+    private int identifier;
 
     /**
      * Length field: It indicates the length of the packet including the Code, Identifier, Length, Authenticator and Attribute fields
@@ -51,7 +51,7 @@ public class RadiusPacket {
     private List<Attribute> attributes;
 
     // Constructor
-    public RadiusPacket(short code, short identifier, int length, byte[] authenticator, List<Attribute> attributes) {
+    public RadiusPacket(int code, int identifier, int length, byte[] authenticator, List<Attribute> attributes) {
         this.code = code;
         this.identifier = identifier;
         this.length = length;
@@ -60,7 +60,7 @@ public class RadiusPacket {
     }
 
     // Constructor
-    public RadiusPacket(short code, short identifier, byte[] authenticator) {
+    public RadiusPacket(int code, int identifier, byte[] authenticator) {
         this.code = code;
         this.identifier = identifier;
         this.length = 0;
@@ -69,14 +69,14 @@ public class RadiusPacket {
     }
 
     // Getters and Setters
-    public short getCode() { return code; }
-    public void setCode(short code) { this.code = code; }
+    public int getCode() { return code; }
+    public void setCode(int code) { this.code = code; }
 
-    public short getIdentifier() { return identifier; }
-    public void setIdentifier(short identifier) { this.identifier = identifier; }
+    public int getIdentifier() { return identifier; }
+    public void setIdentifier(int identifier) { this.identifier = identifier; }
 
     public int getLength() { return length; }
-    public void setLength(short length) { this.length = length; }
+    public void setLength(int length) { this.length = length; }
 
     public byte[] getAuthenticator() { return authenticator; }
     public void setAuthenticator(byte[] authenticator) { this.authenticator = authenticator; }
@@ -84,9 +84,9 @@ public class RadiusPacket {
     public List<Attribute> getAttributes() { return attributes; }
     public void setAttributes(List<Attribute> attributes) { this.attributes = attributes; }
 
-    public void setAttribute(short type, int length, byte[] value){
+    public void setAttribute(int type, int length, byte[] value){
         Attribute attribute = new Attribute(type, length, value);
-        attribute.setLength((short) (2 + value.length));
+        attribute.setLength((2 + value.length));
         this.attributes.add(attribute);
     }
 
@@ -176,10 +176,10 @@ public class RadiusPacket {
      * This method calculates the length of a RadiusPacket based in all its fields
      * @return The length of the RadiusPacket
      */
-    public short calculateLength(){
+    public int calculateLength(){
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
-        short radiusPacketLength;
+        int radiusPacketLength;
 
         try {
             dos.writeByte(this.getCode());
@@ -195,7 +195,7 @@ public class RadiusPacket {
 
             dos.flush();
             byte[] bytePacket = baos.toByteArray();
-            radiusPacketLength = (short) bytePacket.length;
+            radiusPacketLength = bytePacket.length;
             dos.close();
             baos.close();
 

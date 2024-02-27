@@ -82,10 +82,10 @@ public class RadiusServer {
         }
 
         // Extract RADIUS Code
-        short radiusCode = data[0];
+        int radiusCode = data[0] & 0xFF;
 
         // Extract RADIUS Identifier
-        short radiusIdentifier = data[1];
+        int radiusIdentifier = data[1] & 0xFF;
 
         // Extract RADIUS Length
         int radiusLength = (((data[2] & 0xFF) << 8) | (data[3] & 0xFF));
@@ -112,10 +112,10 @@ public class RadiusServer {
         int radiusAttributeStartPosition = RadiusConstants.MINIMUM_RADIUS_PACKET_LENGTH;
         while (radiusAttributeStartPosition < radiusLength) {
             // Extract attribute Type
-            short attributeType = radiusData[radiusAttributeStartPosition];
+            int attributeType = radiusData[radiusAttributeStartPosition] & 0xFF;
 
             // Extract attribute Length
-            int attributeLength = radiusData[radiusAttributeStartPosition + 1];
+            int attributeLength = radiusData[radiusAttributeStartPosition + 1] & 0xFF;
 
             // Extract attribute Value
             byte[] attributeValue = new byte[attributeLength - 2];
