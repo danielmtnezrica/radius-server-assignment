@@ -38,33 +38,33 @@ public class RadiusServer {
                 DatagramPacket receiveUDPPacket = new DatagramPacket(buffer, buffer.length);
                 serverSocket.receive(receiveUDPPacket);
 
-                System.out.println("--------------------");
+                System.out.println("---------------------------------------- \n");
 
                 System.out.println("Packet received from " + receiveUDPPacket.getAddress() + ":"
-                        + receiveUDPPacket.getPort());
+                        + receiveUDPPacket.getPort() + "\n");
 
                 // Parse the received UDP Packet
                 RadiusPacket receiveRadiusPacket = parseUDPData(receiveUDPPacket.getData());
-                System.out.println("Received RADIUS Packet content: " + receiveRadiusPacket);
+                System.out.println("Received RADIUS Packet content: " + receiveRadiusPacket + "\n");
 
                 // Process the Radius Packet accordingly
                 RadiusPacket responseRadiusPacket = processRadiusPacket(receiveRadiusPacket);
 
                 // Send response
-                System.out.println("Response RADIUS Packet content: " + responseRadiusPacket.toString());
+                System.out.println("Response RADIUS Packet content: " + responseRadiusPacket.toString() + "\n");
                 byte[] responseData = responseRadiusPacket.toByteArray();
                 DatagramPacket responsePacket = new DatagramPacket(responseData, responseData.length,
                         receiveUDPPacket.getAddress(), receiveUDPPacket.getPort());
                 serverSocket.send(responsePacket);
 
-                System.out.println("-------------------- \n");
+                System.out.println("---------------------------------------- \n");
             }
         } catch (RadiusException e){
-            System.out.println("Packet discarded. Reason: " + e.getMessage());
+            System.out.println("Packet discarded. Reason: " + e.getMessage() + "\n");
         } catch (IOException e){
-            System.out.println("IO: " + e.getMessage());
+            System.out.println("IO: " + e.getMessage() + "\n");
         } catch (RuntimeException e){
-            System.out.println("Runtime: " + e.getMessage());
+            System.out.println("Runtime: " + e.getMessage() + "\n");
         }
     }
 
@@ -192,7 +192,7 @@ public class RadiusServer {
 
         else{
             // Send Access-Reject
-            System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_NO_SHARED_SECRET);
+            System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_NO_SHARED_SECRET + "\n");
             return RadiusPacket.createAccessReject(radiusPacket, credentialsMap.get("SHARED_SECRET"),
                     RadiusConstants.ACCESS_REJECT_NO_SHARED_SECRET);
         }
@@ -209,13 +209,13 @@ public class RadiusServer {
 
                 if(isUserAuthenticated){
                     // Send Access-Accept
-                    System.out.println("Access-Accept. User is authenticated");
+                    System.out.println("Access-Accept. User is authenticated" + "\n");
                     return RadiusPacket.createAccessAccept(radiusPacket, credentialsMap.get("SHARED_SECRET"));
                 }
 
                 else{
                     // Send Access-Reject
-                    System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_BAD_CREDENTIALS);
+                    System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_BAD_CREDENTIALS + "\n");
                     return RadiusPacket.createAccessReject(radiusPacket, credentialsMap.get("SHARED_SECRET"),
                             RadiusConstants.ACCESS_REJECT_BAD_CREDENTIALS);
                 }
@@ -223,7 +223,7 @@ public class RadiusServer {
 
             else{
                 // Send Access-Reject
-                System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_NO_USER_NAME);
+                System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_NO_USER_NAME + "\n");
                 return RadiusPacket.createAccessReject(radiusPacket, credentialsMap.get("SHARED_SECRET"),
                         RadiusConstants.ACCESS_REJECT_NO_USER_NAME);
             }
@@ -231,7 +231,7 @@ public class RadiusServer {
 
         else{
             // Send Access-Reject
-            System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_NO_PASSWORD);
+            System.out.println("Access-Reject. Reason: " + RadiusConstants.ACCESS_REJECT_NO_PASSWORD + "\n");
             return RadiusPacket.createAccessReject(radiusPacket, credentialsMap.get("SHARED_SECRET"),
                     RadiusConstants.ACCESS_REJECT_NO_PASSWORD);
         }
